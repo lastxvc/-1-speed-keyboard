@@ -1,0 +1,68 @@
+-- Roblox LocalScript
+
+local UIS = game:GetService("UserInputService")
+local VIM = game:GetService("VirtualInputManager")
+local Player = game.Players.LocalPlayer
+
+local gui = Instance.new("ScreenGui", Player.PlayerGui)
+gui.ResetOnSpawn = false
+
+local button = Instance.new("TextButton")
+button.Parent = gui
+button.Size = UDim2.new(0, 170, 0, 170)
+button.Position = UDim2.new(0.5, -85, 0.5, -85)
+button.BackgroundColor3 = Color3.fromRGB(20,20,20)
+button.TextColor3 = Color3.new(1,1,1)
+button.TextScaled = true
+button.Font = Enum.Font.GothamBold
+button.Text = "PRESS TO\nACTIVATE/\nDEACTIVATE"
+button.BorderSizePixel = 0
+button.AutoButtonColor = true
+
+-- Circle
+local corner = Instance.new("UICorner", button)
+corner.CornerRadius = UDim.new(1,0)
+
+-- Outline
+local stroke = Instance.new("UIStroke", button)
+stroke.Thickness = 3
+stroke.Color = Color3.fromRGB(0,170,255)
+
+-- Simulate Left Ctrl
+button.MouseButton1Click:Connect(function()
+	VIM:SendKeyEvent(true, Enum.KeyCode.LeftControl, false, game)
+	task.wait(0.05)
+	VIM:SendKeyEvent(false, Enum.KeyCode.LeftControl, false, game)
+end)
+
+-- Dragging
+local dragging = false
+local dragStart
+local startPos
+
+button.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = true
+		dragStart = input.Position
+		startPos = button.Position
+
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+UIS.InputChanged:Connect(function(input)
+	if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+		local delta = input.Position - dragStart
+
+		button.Position = UDim2.new(
+			startPos.X.Scale,
+			startPos.X.Offset + delta.X,
+			startPos.Y.Scale,
+			startPos.Y.Offset + delta.Y
+		)
+	end
+end)
